@@ -1,0 +1,243 @@
+<div class="notebook">
+
+<div class="nb-cell markdown" name="md1">
+#### *Muniba Manaal*
+#### *FA22-BAI-032*
+#### *Final Project*
+</div>
+
+<div class="nb-cell markdown" name="md2">
+## *Travel Recommendation System*
+</div>
+
+<div class="nb-cell markdown" name="md3">
+It is a travel recommender system that interacts with users to gather their travel preferences including climate, budget, activity, and cultural scene. It uses these preferences to suggest suitable destinations from a diverse knowledgebase. The system dynamically collects user responses, validates them, and if the response is 'exit', it aborts the program. For recommendations, it matches user preferences with destination attributes and provides a sorted list of unique destinations that meet the criteria. The program includes a robust database of fictional and real-world destinations with various characteristics, ensuring a wide range of recommendations for different user preferences.
+</div>
+
+<div class="nb-cell markdown" name="md4">
+### *Prolog code:*
+</div>
+
+<div class="nb-cell program" name="p1">
+:- dynamic user_preference/2.
+:- discontiguous matches_preference/2.
+:- use_module(library(random)).
+
+start :-
+    retractall(user_preference(_, _)),
+    greet_user,
+    ask_preferences,
+    recommend,
+    goodbye.
+
+greet_user :-
+    write('Welcome to Travel Recommender!'), nl,
+    write('Please enter your preferences for a personalized travel experience.'), nl.
+
+goodbye :-
+    write('Thank you for using Travel Recommender! Have a great trip!'), nl.
+
+
+ask_preferences :-
+    ask_climate,
+    ask_budget,
+    ask_activity,
+    ask_culture.
+
+
+ask_climate :-
+    ask_preference('climate', [moderate, tropical, warm, cold, any]).
+
+
+ask_budget :-
+    ask_preference('budget', [high, moderate, low, any]).
+
+
+ask_activity :-
+    ask_preference('activity', [beaches, history, adventure, culture, none, any]).
+
+
+ask_culture :-
+    ask_preference('culture', ['vibrant', 'quiet', 'indifferent', 'any']).
+
+
+ask_preference(PreferenceType, Options) :-
+    format('What is your preferred ~w? (~w/exit) ', [PreferenceType, Options]), 
+    read_line_to_string(user_input, Input),
+    handle_input(Input, PreferenceType, Options).
+
+
+handle_input(Input, _, _) :-
+    (Input == "exit" ; Input == "Exit"), 
+    write('Exiting the program.'), nl, abort.
+handle_input(Input, PreferenceType, Options) :-
+    string_to_atom(Input, Pref),
+    (   member(Pref, Options)
+    -&gt;  assert(user_preference(PreferenceType, Pref))
+    ;   (Pref == any) % Special handling for 'any' input
+        -&gt;  assert(user_preference(PreferenceType, any))
+        ;   write('Invalid choice. Please try again.'), nl,
+            ask_preference(PreferenceType, Options)
+    ).
+
+
+recommend :-
+    user_preference(climate, Climate),
+    user_preference(budget, Budget),
+    user_preference(activity, Activity),
+    user_preference(culture, Culture),
+    find_destinations(Climate, Budget, Activity, Culture, Recommendations),
+    display_recommendations(Recommendations).
+
+
+find_destinations(Climate, Budget, Activity, Culture, UniqueDestinations) :-
+    findall(Destination, 
+            (destination(Destination, DestClimate, DestBudget, DestActivity, DestCulture),
+             matches_preference(Climate, DestClimate),
+             matches_preference(Budget, DestBudget),
+             matches_preference(Activity, DestActivity),
+             matches_culture_preference(Culture, DestCulture)),
+            Destinations),
+    sort(Destinations, UniqueDestinations).
+
+
+matches_culture_preference(any, _).
+matches_culture_preference(CulturePref, DestinationCulture) :-
+    (CulturePref == 'vibrant', DestinationCulture == yes);
+    (CulturePref == 'quiet', DestinationCulture == no);
+    (CulturePref == 'indifferent', DestinationCulture == no);
+    CulturePref == 'any'.
+
+display_recommendations([]) :-
+    write('Sorry, no destinations match your preferences.'), nl.
+display_recommendations(Destinations) :-
+    write('Recommended Destinations: '), nl,
+    print_list(Destinations).
+
+
+print_list([]).
+print_list([H|T]) :-
+    write('- '), write(H), nl, print_list(T).
+
+
+matches_preference(any, _).
+matches_preference(Preference, DestinationPreference) :-
+    Preference == DestinationPreference.
+
+
+destination(elysium, moderate, high, history, yes).
+destination(azureville, tropical, moderate, beaches, no).
+destination(frostford, cold, low, adventure, yes).
+destination(solaris, warm, high, culture, yes).
+destination(terra, moderate, moderate, none, no).
+destination(lunaria, cold, high, adventure, yes).
+destination(mystica, tropical, low, culture, no).
+destination(valoria, tropical, moderate, culture, yes).
+destination(starhaven, warm, low, beaches, no).
+destination(northernlight, cold, high, history, yes).
+destination(auroraville, moderate, low, adventure, no).
+destination(celestialcity, warm, high, culture, yes).
+destination(oasisland, tropical, high, beaches, yes).
+destination(shadowfall, cold, moderate, none, yes).
+destination(sunrisebay, moderate, high, beaches, no).
+destination(dreamscape, warm, moderate, adventure, yes).
+destination(moonvalley, cold, low, history, no).
+destination(serenityshore, tropical, moderate, culture, no).
+destination(windwhisper, moderate, low, none, yes).
+destination(rainbowreef, warm, high, beaches, yes).
+destination(thunderpeak, cold, high, adventure, yes).
+destination(whisperingwoods, moderate, moderate, culture, yes).
+destination(stargaze, tropical, low, history, no).
+destination(mirageisland, warm, moderate, adventure, yes).
+destination(frostfire, cold, low, culture, no).
+destination(cloudtop, moderate, high, beaches, yes).
+destination(silverlake, tropical, high, none, no).
+destination(crescentCove, tropical, moderate, adventure, vibrant).
+destination(emeraldEscape, moderate, low, history, quiet).
+destination(harmonyHaven, warm, high, culture, vibrant).
+destination(polarParadise, cold, high, none, indifferent).
+destination(sereneSummit, cold, moderate, adventure, quiet).
+destination(twilightTrail, warm, low, history, vibrant).
+destination(vistaValley, moderate, high, beaches, quiet).
+destination(zenithZephyr, tropical, high, culture, vibrant).
+destination(mysticMeadows, moderate, moderate, none, indifferent).
+destination(oceanOasis, tropical, low, beaches, vibrant).
+destination(peakPinnacle, cold, high, adventure, vibrant).
+destination(tranquilTropics, warm, moderate, culture, quiet).
+destination(urbanUtopia, moderate, low, history, vibrant).
+destination(valleyVoyage, tropical, high, adventure, indifferent).
+</div>
+
+<div class="nb-cell markdown" name="md5">
+### *Queries:*
+</div>
+
+<div class="nb-cell query" name="q1">
+start.
+</div>
+
+<div class="nb-cell markdown" name="md6">
+### *Travel Recommender System - Detailed Analysis*
+
+1. **Overview**: The program is a Prolog-based interactive travel recommender system. It engages the user in a dialogue to collect travel preferences and generates suitable destination recommendations.
+
+2. **User Interaction**:
+   - **Initiation**: Begins with a welcoming message and an invitation to input preferences.
+   - **Preferences Gathering**: Collects user preferences for climate, budget, activities, and cultural scene through a series of prompts.
+   - **Input Validation**: Validates user responses, offering a chance to re-enter in case of invalid inputs or exit the program.
+
+3. **Recommendation Engine**:
+   - **Matching Logic**: Utilizes user preferences to filter a pre-defined list of destinations. It accommodates broad preferences by including 'any' as an option.
+   - **Unique Recommendations**: Ensures uniqueness in the recommendations to prevent repetition.
+   - **Dynamic Knowledgebase**: Features a versatile database of both fictional and real-world destinations, each characterized by attributes corresponding to the preference categories.
+
+4. **Program Structure**:
+   - **Dynamic Preference Management**: Uses dynamic predicates to store and manage user preferences.
+   - **Modular Design**: The program is structured into distinct sections for preference gathering, recommendation processing, and user interaction, enhancing readability and maintainability.
+
+5. **User Experience**:
+   - **Interactive and User-Friendly**: Offers a responsive and engaging user experience.
+   - **Customized Recommendations**: Tailors destination suggestions based on individual preferences, enhancing the relevance of recommendations.
+
+6. **Conclusion**:
+   - The program effectively marries the logical capabilities of Prolog with an interactive user interface, providing a practical and enjoyable tool for travel planning based on personal preferences. 
+
+This program showcases the application of Prolog in creating interactive and personalized user experiences, combining logical reasoning with user-centered design.
+</div>
+
+<div class="nb-cell markdown" name="md7">
+### *Functionality:*
+
+1. **Initialization and Greeting (`start`, `greet_user`, `goodbye`)**:
+   - The `start` predicate initializes the program, clearing any existing preferences.
+   - `greet_user` displays a welcome message.
+   - `goodbye` shows a farewell message at the end.
+
+2. **Collecting User Preferences (`ask_preferences`, `ask_preference`, `handle_input`)**:
+   - `ask_preferences` sequentially calls functions to collect user preferences for climate, budget, activity, and culture.
+   - `ask_preference` is a generic function used to ask for each type of preference, displaying the options and reading user input.
+   - `handle_input` processes the user's input, handling 'exit' commands and validating choices.
+
+3. **Generating Recommendations (`recommend`, `find_destinations`, `matches_preference`, `matches_culture_preference`)**:
+   - `recommend` uses collected preferences to generate destination recommendations.
+   - `find_destinations` filters the destinations from the knowledge base according to the user's preferences.
+   - `matches_preference` and `matches_culture_preference` are helper predicates used to check if a destination matches the given preferences.
+
+4. **Displaying Recommendations (`display_recommendations`, `print_list`)**:
+   - `display_recommendations` handles the output of recommended destinations.
+   - `print_list` is a utility for printing the list of destinations.
+
+5. **Knowledge Base (Destinations)**:
+   - The program includes a knowledge base of destinations (like `destination(elysium, moderate, high, history, yes)`), each with attributes for climate, budget, activity type, and cultural vibrancy.
+
+This structure allows your program to interactively collect user preferences and suggest suitable travel destinations based on those preferences.
+</div>
+
+<div class="nb-cell markdown" name="md8">
+### *Conclusion:*
+The Prolog program is an interactive travel recommender system. It starts by clearing previous preferences (`retractall`) and greeting the user. It then sequentially asks the user for their preferences in climate, budget, activities, and culture. Each preference category is handled by `ask_preference`, which validates user input or allows exit. The `recommend` function collects these preferences and uses `find_destinations` to filter destinations from a predefined list, ensuring unique recommendations. The recommendation display includes a check for empty results and formats the output list. The program ends with a goodbye message. The knowledge base contains fictional and real-world destinations, each characterized by attributes like climate, budget, activity type, and cultural vibrancy. The program's structure supports dynamic preference management and a user-friendly interface, catering to diverse user needs and enhancing the travel planning experience.
+
+In conclusion, the Prolog program is an expert system designed for personalized travel recommendations. It effectively interacts with users to gather their preferences regarding climate, budget, activities, and culture. The program then intelligently filters and suggests destinations from its knowledge base, matching these preferences. The use of dynamic predicates and utility functions for handling user inputs and displaying recommendations ensures a user-friendly and responsive experience. This system demonstrates the power of Prolog in developing rule-based reasoning applications, particularly in the domain of personalized decision-making and recommendations.
+</div>
+
+</div>
